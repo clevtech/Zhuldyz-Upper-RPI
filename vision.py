@@ -2,6 +2,7 @@ import apiai
 import json
 import sys
 
+
 def textMessage(update):
     request = apiai.ApiAI('167a082419914df2b44700f2bcda6087').text_request() # Токен API к Dialogflow
     request.lang = 'ru' # На каком языке будет послан запрос
