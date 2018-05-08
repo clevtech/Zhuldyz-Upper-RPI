@@ -5,7 +5,7 @@ import random
 
 
 def upper_monitor():
-    examples = ["Normal#ru-RU#Здраствуйте, меня зовут Жулдз, я робот гид", "Happy#ru-RU#Я так рада что вы тут",
+    examples = ["Normal#ru-RU#Здраствуйте, меня зовут Жулдыз, я робот гид", "Happy#ru-RU#Я так рада что вы тут",
                 "Sad#ru-RU#Простите, я вас не поняла, можете, пожалуйста, перефразировать",
                 "Angry#ru-RU#Алё, тупое быдло, дай дорогу, королева идет", "Sexy#en-GB#Let`s do it, baby",
                 "Normal#None#None"]
