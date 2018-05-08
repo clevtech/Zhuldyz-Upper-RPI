@@ -3,6 +3,7 @@ import sys
 import traceback
 import random
 
+
 def upper_monitor():
     examples = ["Normal#ru-RU#Здраствуйте, меня зовут Жулдз, я робот гид", "Happy#ru-RU#Я так рада что вы тут",
                 "Sad#ru-RU#Простите, я вас не поняла, можете, пожалуйста, перефразировать",
@@ -50,14 +51,9 @@ def start_server():
     # this is for easy starting/killing the app
     soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     print('Socket 1 created')
-    soc2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # this is for easy starting/killing the app
-    soc2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    print('Socket 2 created')
 
     try:
         soc.bind(("192.168.8.104", 6666))
-        soc2.bind(("192.168.8.104", 7777))
         print('Socket bind complete')
     except socket.error as msg:
         print('Bind failed. Error : ' + str(sys.exc_info()))
@@ -65,28 +61,16 @@ def start_server():
 
     # Start listening on socket
     soc.listen(1)
-    soc2.listen(1)
     print('Socket now listening')
     # this will make an infinite loop needed for
     # not reseting server for every client
     conn, addr = soc.accept()
     ip, port = str(addr[0]), str(addr[1])
     print('Accepting connection 1 from ' + ip + ':' + port)
-    conn2, addr2 = soc2.accept()
-    ip2, port2 = str(addr[0]), str(addr[1])
-    print('Accepting connection 2 from ' + ip2 + ':' + port2)
     while True:
         try:
             print("First one:")
             client_thread(1, conn, ip, port)
-        except:
-            print("Terrible error!")
-            traceback.print_exc()
-            soc.close()
-
-        try:
-            print("Second one:")
-            client_thread(0, conn2, ip2, port2)
         except:
             print("Terrible error!")
             traceback.print_exc()

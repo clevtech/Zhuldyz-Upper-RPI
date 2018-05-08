@@ -4,7 +4,6 @@ import socket
 def Main():
     host = '192.168.8.104'
     port = 7777
-
     mySocket = socket.socket()
     mySocket.connect((host, port))
     message = input(" -> ")
