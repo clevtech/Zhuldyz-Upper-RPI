@@ -270,24 +270,14 @@ if __name__ == '__main__':
                 # Берет фразы историй
                 with open("./" + str(position) + ".txt", "r") as file:
                     texts = file.readlines()
+                go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
                 for phrase in texts:
                     # Отправляет тебе стринг "ab", "bc" или "cd"
-                    go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-                    feedback = from_display(leg_conn)
-                    while 1:
-                        if feedback == "human":
-                            send_to_display(top_conn, bot_conn, names, dvigai, 1)
-                            from_display(top_conn)
-                            from_display(bot_conn)
-                            go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-                            feedback = from_display(leg_conn)
-                        else:
-                            send_to_display(top_conn, bot_conn, names, phrase, 0)
-                            from_display(top_conn)
-                            from_display(bot_conn)
-                            go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-                            feedback = from_display(leg_conn)
-                            break
+
+                    send_to_display(top_conn, bot_conn, names, phrase, 0)
+                    from_display(top_conn)
+                    from_display(bot_conn)
+                feedback = from_display(leg_conn)
             for i in range(20):
                 talking()
             protocol = 3
@@ -296,16 +286,7 @@ if __name__ == '__main__':
             position = "a"
             go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
             feedback = from_display(leg_conn)
-            while 1:
-                if feedback == "human":
-                    send_to_display(top_conn, bot_conn, names, dvigai, 1)
-                    from_display(top_conn)
-                    from_display(bot_conn)
-                    go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-                    feedback = from_display(leg_conn)
-                else:
-                    protocol = 1
-                    break
+            protocol = 1
         elif protocol == 4:
             position = "charge"
             go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
