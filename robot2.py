@@ -5,6 +5,7 @@ import random
 import apiai
 import json
 from time import sleep
+import RPi.GPIO as GPIO
 
 
 # Work with lower RPI
@@ -180,6 +181,19 @@ def Okay_robot():
         return 0
 
 
+def SetAngle(angle):
+        duty = int(angle) / 18 + 2
+        GPIO.output(3, True)
+        pwm.ChangeDutyCycle(duty)
+
+        sleep(1)
+        GPIO.output(3, False)
+        GPIO.output(3, True)
+        pwm.ChangeDutyCycle(0)
+        sleep(1)
+        GPIO.output(3, False)
+
+
 # Talking protocol
 def talking():
     # Сюда
@@ -226,6 +240,14 @@ def talking():
 
 # Main function
 if __name__ == '__main__':
+    GPIO.cleanup()
+
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(3, GPIO.OUT)
+    pwm = GPIO.PWM(3, 50)
+    pwm.start(0)
+    SetAngle(90)
+    SetAngle(90)
 
     # Инициализация системы
     top_ip = input("Your ip is: ")
