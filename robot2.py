@@ -1,10 +1,11 @@
-import cv2
 import speech_recognition as sr
 import socket
 import sys
 import random
 import apiai
 import json
+from time import sleep
+
 
 # Work with lower RPI
 def go_to_position(position, conn, MAX_BUFFER_SIZE = 4096):
@@ -71,7 +72,7 @@ def send_to_display(top_conn, bot_conn, names, phrase, types):
     print("Send to displays")
 
 
-def from_display(conn, MAX_BUFFER_SIZE = 4096):
+def from_display(conn, MAX_BUFFER_SIZE = 126000):
 
     # the input is in bytes, so decode it
     input_from_client_bytes = conn.recv(MAX_BUFFER_SIZE)
@@ -121,57 +122,22 @@ def start_server(ip, port):
 # End of interfaces block
 
 
-# Facial recognition block
-def recognize_face():
-    while True:
-        ret, frame = cap.read()
-
-        # Our operations on the frame come here
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-        try:
-            number = len(faces)
-            size = [faces[0][2], faces[0][3]]
-            position = [faces[0][0], faces[0][1]]
-            if size[0] < 110:
-                number = 0
-            break
-        except:
-            a = 1
-    return size, position, number
-
-
-def see_face():
-    while True:
-        ret, frame = cap.read()
-        # Our operations on the frame come here
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-        try:
-            position = [faces[0][0], faces[0][1]]
-            if position[0] < 100:
-                print("turn right")
-            elif position[0] > 300:
-                print("turn left")
-            else:
-                print("face in middle")
-                return 1
-        except:
-            return 0
-# End of facial recognition block
-
-
 def listen_question():
     try:
         r = sr.Recognizer()
         #source = open(sr.Microphone())
         with sr.Microphone() as source:
             #print(source)
-            #r.adjust_for_ambient_noise(source)
-            print("Say something!")
-            audio = r.listen(source)
+            r.adjust_for_ambient_noise(source)
+
+            try:
+                print("Say something!")
+                audio = r.listen(source)
+                print("You said")
+            except:
+                return None
         try:
-            question = r.recognize_google(audio)
+            question = r.recognize_google(audio, language="ru-RU")
         except sr.UnknownValueError:
             question = None
     except:
@@ -180,57 +146,87 @@ def listen_question():
     return question
 
 
+def Okay_robot():
+    ups = 0
+    r = sr.Recognizer()
+    #source = open(sr.Microphone())
+    with sr.Microphone() as source:
+        #print(source)
+        r.adjust_for_ambient_noise(source)
+        print("Say something!")
+        try:
+            audio = r.listen(source, timeout=2)
+            print("You said")
+        except:
+            return 0
+    try:
+        question = r.recognize_google(audio, language="ru-RU")
+        print(question)
+        list_of_questions = question.split()
+        print(list_of_questions)
+        list_of_phrases = ["жулдыз", "жолдас", "елдос", "шолпан", "юлдуз", "ердос", "робот", "гид", "инвините",
+                           "простите", "привет", "здравствуйте", "извиняюсь", "подруга", "друг", "желдор", "желтый",
+                           "желтая", "жёлтый", "жёлтая"]
+        for phrase in list_of_phrases:
+            for question in list_of_questions:
+                if str(phrase).lower() == str(question).lower():
+                    print("Start a party")
+                    return 1
+                else:
+                    ups = 1
+    except sr.UnknownValueError:
+        return 0
+    if ups == 1:
+        return 0
+
+
 # Talking protocol
 def talking():
-    size, position, number = recognize_face()
+    # Сюда
+    number = Okay_robot()
     print("Number of faces is " + str(number))
-    if number > 0:
-        open_phrase = "Меня зовут Жулдыз, и я жду вопросов"
-        send_to_display(top_conn, bot_conn, names, open_phrase, 1)
-        from_display(top_conn)
-        from_display(bot_conn)
+    if int(number) == 1:
+        open_phrase = "Меня зовут Жулдыз, и я робот гид"
+        print(open_phrase)
+        # send_to_display(top_conn, bot_conn, names, open_phrase, 1)
+        # from_display(top_conn)
+        # from_display(bot_conn)
+        a = 0
         while True:
             question = listen_question()
+            print("Question is " + str(question))
 
             if question:
                 if question.lower() == "экскурсия":
                     return 2
-                send_to_display(top_conn, bot_conn, names, question, 0)
-                from_display(top_conn)
-                from_display(bot_conn)
+                # send_to_display(top_conn, bot_conn, names, question, 0)
+                # from_display(top_conn)
+                # from_display(bot_conn)
             else:
-                size, position, number = recognize_face()
-                if number < 1:
-                    break
-                else:
-                    send_to_display(top_conn, bot_conn, names, "Простите, я вас не услышала", 1)
-                    from_display(top_conn)
-                    from_display(bot_conn)
-    elif number == 0:
+                sleep(1)
+                a = a + 1
+                if a == 2:
+                    return 1
+                # send_to_display(top_conn, bot_conn, names, "Простите, я вас не услышала", 1)
+                # from_display(top_conn)
+                # from_display(bot_conn)
+
+
+    else:
+        print("waiting loop")
         if random.randint(1, 50) == 1:
             catch_phrase = "Пожалуйста, подходите на экскурсию по павильону казкосмос, " \
                            "я вам всё покажу, всё расскажу."
-            send_to_display(top_conn, bot_conn, names, catch_phrase, 1)
-            from_display(top_conn)
-            from_display(bot_conn)
+            # send_to_display(top_conn, bot_conn, names, catch_phrase, 1)
+            # from_display(top_conn)
+            # from_display(bot_conn)
     return 1
 # End of talking protocol
 
 
-# Setup function
-def setup_all():
-    # Initialize OpenCV
-    cap = cv2.VideoCapture(0)
-    cap.set(3, 640)  # WIDTH
-    cap.set(4, 480)  # HEIGHT
-    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-    return cap, face_cascade
-# End of setup function
-
-
 # Main function
 if __name__ == '__main__':
-    cap, face_cascade = setup_all()
+
     # Инициализация системы
     top_ip = input("Your ip is: ")
     top_port = 6666
@@ -238,24 +234,24 @@ if __name__ == '__main__':
     bot_port = 7777
     leg_ip = top_ip
     leg_port = 5555
-    print("Starting face tcp")
-    top_conn, names, top_soc = start_server(top_ip, top_port)
-    print("Starting boob tcp")
-    bot_conn, names, bot_soc = start_server(bot_ip, bot_port)
-    print("Starting leg tcp")
-    leg_conn, names, leg_soc = start_server(leg_ip, leg_port)
-
-    if from_display(bot_conn) == "Hello":
-        print("Boobs are connected")
-        if from_display(top_conn) == "Hello":
-            print("Face is connected")
-            send_to_display(top_conn, bot_conn, names, "Инициализация всей системы, протокол Зарождение", 1)
-            if from_display(top_conn):
-                if from_display(bot_conn):
-                    send_to_display(top_conn, bot_conn, names, "Завершение протокола Зарождение, "
-                                                               "я родилась, протокол собеседник", 1)
-                    from_display(top_conn)
-                    from_display(bot_conn)
+    # print("Starting face tcp")
+    # top_conn, names, top_soc = start_server(top_ip, top_port)
+    # print("Starting boob tcp")
+    # bot_conn, names, bot_soc = start_server(bot_ip, bot_port)
+    # print("Starting leg tcp")
+    # #leg_conn, names, leg_soc = start_server(leg_ip, leg_port)
+    #
+    # if from_display(bot_conn) == "Hello":
+    #     print("Boobs are connected")
+    #     if from_display(top_conn) == "Hello":
+    #         print("Face is connected")
+    #         send_to_display(top_conn, bot_conn, names, "Инициализация всей системы, протокол Зарождение", 1)
+    #         if from_display(top_conn):
+    #             if from_display(bot_conn):
+    #                 send_to_display(top_conn, bot_conn, names, "Завершение протокола Зарождение, "
+    #                                                            "я родилась, протокол собеседник", 1)
+    #                 from_display(top_conn)
+    #                 from_display(bot_conn)
 
     # Инициализация закончена
 
@@ -274,21 +270,21 @@ if __name__ == '__main__':
                 # Берет фразы историй
                 with open("./" + str(position) + ".txt", "r") as file:
                     texts = file.readlines()
-                go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-                for phrase in texts:
+     #           go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
+     #            for phrase in texts:
                     # Отправляет тебе стринг "ab", "bc" или "cd"
-
-                    send_to_display(top_conn, bot_conn, names, phrase, 0)
-                    from_display(top_conn)
-                    from_display(bot_conn)
-                feedback = from_display(leg_conn)
+                    #
+                    # send_to_display(top_conn, bot_conn, names, phrase, 0)
+                    # from_display(top_conn)
+                    # from_display(bot_conn)
+     #           feedback = from_display(leg_conn)
             for i in range(20):
                 talking()
             protocol = 3
         elif protocol == 3:
             # Отправляет тебе стринг "a"
             position = "a"
-            go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-            feedback = from_display(leg_conn)
+      #      go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
+      #      feedback = from_display(leg_conn)
             protocol = 1
 

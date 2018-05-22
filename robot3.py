@@ -141,41 +141,21 @@ def recognize_face():
     return size, position, number
 
 
-def see_face():
-    while True:
-        ret, frame = cap.read()
-        # Our operations on the frame come here
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-        try:
-            position = [faces[0][0], faces[0][1]]
-            if position[0] < 100:
-                print("turn right")
-            elif position[0] > 300:
-                print("turn left")
-            else:
-                print("face in middle")
-                return 1
-        except:
-            return 0
-# End of facial recognition block
-
-
 def listen_question():
+    # try:
+    r = sr.Recognizer()
+    #source = open(sr.Microphone())
+    with sr.Microphone() as source:
+        #print(source)
+        #r.adjust_for_ambient_noise(source)
+        print("Say something!")
+        audio = r.listen(source)
     try:
-        r = sr.Recognizer()
-        #source = open(sr.Microphone())
-        with sr.Microphone() as source:
-            #print(source)
-            #r.adjust_for_ambient_noise(source)
-            print("Say something!")
-            audio = r.listen(source)
-        try:
-            question = r.recognize_google(audio)
-        except sr.UnknownValueError:
-            question = None
-    except:
-        question = input("Question?: ")
+        question = r.recognize_google(audio, language="ru-RU")
+    except sr.UnknownValueError:
+        question = None
+    # except:
+    #     question = input("Question?: ")
     print(question)
     return question
 
@@ -230,65 +210,5 @@ def setup_all():
 
 # Main function
 if __name__ == '__main__':
-    cap, face_cascade = setup_all()
-    # Инициализация системы
-    top_ip = input("Your ip is: ")
-    top_port = 6666
-    bot_ip = top_ip
-    bot_port = 7777
-    leg_ip = top_ip
-    leg_port = 5555
-    print("Starting face tcp")
-    top_conn, names, top_soc = start_server(top_ip, top_port)
-    print("Starting boob tcp")
-    bot_conn, names, bot_soc = start_server(bot_ip, bot_port)
-    print("Starting leg tcp")
-    leg_conn, names, leg_soc = start_server(leg_ip, leg_port)
-
-    if from_display(bot_conn) == "Hello":
-        print("Boobs are connected")
-        if from_display(top_conn) == "Hello":
-            print("Face is connected")
-            send_to_display(top_conn, bot_conn, names, "Инициализация всей системы, протокол Зарождение", 1)
-            if from_display(top_conn):
-                if from_display(bot_conn):
-                    send_to_display(top_conn, bot_conn, names, "Завершение протокола Зарождение, "
-                                                               "я родилась, протокол собеседник", 1)
-                    from_display(top_conn)
-                    from_display(bot_conn)
-
-    # Инициализация закончена
-
-    # Initialize protocol
-    protocol = 1
-    # 1 = dialogues, 2 - fair, 3 - go to position A, 4 - go charge, 5 - wake up
-
-    while True:
-        if protocol == 1:
-            print("Protocol 1:")
-            protocol = talking()
-        elif protocol == 2:
-            positions = ["ab", "bc"]
-            for position in positions:
-                print("Position is " + str(position))
-                # Берет фразы историй
-                with open("./" + str(position) + ".txt", "r") as file:
-                    texts = file.readlines()
-                go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-                for phrase in texts:
-                    # Отправляет тебе стринг "ab", "bc" или "cd"
-
-                    send_to_display(top_conn, bot_conn, names, phrase, 0)
-                    from_display(top_conn)
-                    from_display(bot_conn)
-                feedback = from_display(leg_conn)
-            for i in range(20):
-                talking()
-            protocol = 3
-        elif protocol == 3:
-            # Отправляет тебе стринг "a"
-            position = "a"
-            go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-            feedback = from_display(leg_conn)
-            protocol = 1
-
+    while 1:
+        listen_question()
