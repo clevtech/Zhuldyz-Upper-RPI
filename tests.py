@@ -163,7 +163,7 @@ def listen_question():
         #source = open(sr.Microphone())
         with sr.Microphone() as source:
             #print(source)
-            #r.adjust_for_ambient_noise(source)
+            r.adjust_for_ambient_noise(source)
             print("Say something!")
             audio = r.listen(source)
         try:
@@ -181,16 +181,19 @@ def talking():
     size, position, number = recognize_face()
     print("Number of faces is " + str(number))
     if number > 0:
-        open_phrase = "Меня зовут Жулдыз, и я жду вопросов"
+        open_phrase = "Задавайте вопросы, я вам помогу"
         send_to_display(top_conn, bot_conn, names, open_phrase, 1)
         from_display(top_conn)
         from_display(bot_conn)
         while True:
             question = listen_question()
-
-            if question:
-                if question.lower() == "экскурсия":
-                    return 2
+            if question.lower() == "начинай экскурсию":
+                return 2
+            elif question.lower() == "пора спать":
+                return 4
+            elif question.lower() == "пора работать":
+                return 5
+            elif question:
                 send_to_display(top_conn, bot_conn, names, question, 0)
                 from_display(top_conn)
                 from_display(bot_conn)
@@ -199,7 +202,7 @@ def talking():
                 if number < 1:
                     break
                 else:
-                    send_to_display(top_conn, bot_conn, names, "Простите, я вас не услышала", 1)
+                    send_to_display(top_conn, bot_conn, names, "Пожалуйста, не спешите говорить", 1)
                     from_display(top_conn)
                     from_display(bot_conn)
     elif number == 0:
@@ -226,17 +229,20 @@ def setup_all():
 
 # Main function
 if __name__ == '__main__':
+
+    cap, face_cascade = setup_all()
+
     # Инициализация системы
-    top_ip = input("Your ip is: ")
+    top_ip = "192.168.1.105"
     top_port = 6666
-    bot_ip = top_ip
+    bot_ip = "192.168.1.105"
     bot_port = 7777
-    leg_ip = top_ip
+    leg_ip = "192.168.1.105"
     leg_port = 5555
 
     top_conn, names, top_soc = start_server(top_ip, top_port)
     bot_conn, names, bot_soc = start_server(bot_ip, bot_port)
-    leg_conn, names, leg_soc = start_server(leg_ip, leg_port)
+    # leg_conn, names, leg_soc = start_server(leg_ip, leg_port)
 
     if from_display(bot_conn) == "Hello":
         print("Boobs are connected")
@@ -262,26 +268,36 @@ if __name__ == '__main__':
             print("Protocol 1")
             protocol = talking()
         elif protocol == 2:
-            positions = ["ab", "bc"]
+            positions = ["ab", "bc", "cd"]
             for position in positions:
                 # Берет фразы историй
                 with open("./" + str(position) + ".txt", "r") as file:
                     texts = file.readlines()
-                go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
+                # go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
                 for phrase in texts:
                     # Отправляет тебе стринг "ab", "bc" или "cd"
 
                     send_to_display(top_conn, bot_conn, names, phrase, 0)
                     from_display(top_conn)
                     from_display(bot_conn)
-                feedback = from_display(leg_conn)
+                # feedback = from_display(leg_conn)
             for i in range(20):
                 talking()
             protocol = 3
         elif protocol == 3:
             # Отправляет тебе стринг "a"
             position = "a"
-            go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-            feedback = from_display(leg_conn)
+            # go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
+            # feedback = from_display(leg_conn)
+            protocol = 1
+        elif protocol == 4:
+            position = "charge"
+            # go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
+            # feedback = from_display(leg_conn)
+            protocol = 1
+        elif protocol == 5:
+            position = "from_charge"
+            # go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
+            # feedback = from_display(leg_conn)
             protocol = 1
 

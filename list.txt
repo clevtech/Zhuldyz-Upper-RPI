@@ -17,3 +17,5 @@ rgp infrakos logo
 rocket
 satelite
 tereshkova
+gagarin
+first man in space
