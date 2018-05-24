@@ -181,17 +181,23 @@ def Okay_robot():
         return 0
 
 
-def SetAngle(angle):
-        duty = int(angle) / 18 + 2
-        GPIO.output(3, True)
-        pwm.ChangeDutyCycle(duty)
+def SetAngle(angle, hand):
+    if hand == "R":
+        gpio = 3
+        pwm1 = pwm[0]
+    else:
+        pwm1 = pwm[1]
+        gpio = 5
+    duty = int(angle) / 18 + 2
+    GPIO.output(gpio, True)
+    pwm1.ChangeDutyCycle(duty)
 
-        sleep(1)
-        GPIO.output(3, False)
-        GPIO.output(3, True)
-        pwm.ChangeDutyCycle(0)
-        sleep(1)
-        GPIO.output(3, False)
+    sleep(1)
+    GPIO.output(gpio, False)
+    GPIO.output(gpio, True)
+    pwm1.ChangeDutyCycle(0)
+    sleep(1)
+    GPIO.output(gpio, False)
 
 
 # Talking protocol
@@ -241,13 +247,18 @@ def talking():
 # Main function
 if __name__ == '__main__':
     GPIO.cleanup()
-
+    pwm = []
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(3, GPIO.OUT)
-    pwm = GPIO.PWM(3, 50)
-    pwm.start(0)
-    SetAngle(90)
-    SetAngle(90)
+    pwm[0] = GPIO.PWM(3, 50)
+    GPIO.setup(5, GPIO.OUT)
+    pwm[1] = GPIO.PWM(5, 50)
+    pwm[1].start(0)
+    pwm[0].start(0)
+    SetAngle(90, "R")
+    SetAngle(0, "R")
+    SetAngle(90, "L")
+    SetAngle(0, "L")
 
     # Инициализация системы
     top_ip = input("Your ip is: ")
@@ -293,19 +304,41 @@ if __name__ == '__main__':
                     # Берет фразы историй
                     with open("./" + str(position) + ".txt", "r") as file:
                         texts = file.readlines()
-                    go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
-                    for phrase in texts:
-                        # Отправляет тебе стринг "ab", "bc" или "cd"
-
-                        send_to_display(top_conn, bot_conn, names, phrase, 0)
+                    if position == "ab":
+                        send_to_display(top_conn, bot_conn, names, phrase, 1)
                         from_display(top_conn)
                         from_display(bot_conn)
+                    go_to_position(position, leg_conn, MAX_BUFFER_SIZE=4096)
                     feedback = from_display(leg_conn)
-                for i in range(20):
+                    for phrase in texts:
+                        # Отправляет тебе стринг "ab", "bc" или "cd"
+                        if phrase.replace("\r", "").replace("\n", "") == "Вход на павильон слева от меня.":
+                            SetAngle(90, "L")
+                            SetAngle(0, "L")
+                        elif phrase.replace("\r", "").replace("\n", "") == "Слева от меня вы можете видеть " \
+                                                                           "космическую инфраструктуру " \
+                                                                           "Республики Казахстан":
+                            SetAngle(90, "L")
+                            SetAngle(0, "L")
+                        elif phrase.replace("\r", "").replace("\n", "") == "Справа от меня Вы можете изучить в " \
+                                                                           "подробностях уже большую и насыщенную " \
+                                                                           "историю Казахстанской космической истории.":
+                            SetAngle(90, "R")
+                            SetAngle(0, "R")
+                        send_to_display(top_conn, bot_conn, names, phrase, 1)
+                        from_display(top_conn)
+                        from_display(bot_conn)
+
+                for i in range(5):
                     talking()
                 protocol = 3
             else:
                 position = "a"
+                phrase = "Мое время на этой точке окончилось, позвольте проехать на начальную позицию, " \
+                         "если вас не затруднит"
+                send_to_display(top_conn, bot_conn, names, phrase, 1)
+                from_display(top_conn)
+                from_display(bot_conn)
                 go_to_position(position, leg_conn)
                 feedback = from_display(leg_conn)
                 protocol = 1
